@@ -27,10 +27,5 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-<<<<<<< HEAD
           publish_dir: ./  
           destination_repo: ShuoY18/ShuoY18.github.io/  # 私有仓库的名称
-=======
-          publish_dir: ./  # 你生成的静态网站文件所在的目录
-          destination_repo: ShuoY18/ShuoY18.github.io  # 私有仓库的名称
->>>>>>> 9f576409dfe5f586c0c9ef519af502c1a571648a
