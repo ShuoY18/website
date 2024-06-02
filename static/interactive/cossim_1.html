@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Interaction</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-container {
+            position: relative;
+            margin: 20px;
+        }
+
+        .image-container img {
+            width: 256px;
+            height: auto;
+        }
+
+        .highlight {
+            position: absolute;
+            pointer-events: none;
+            display: none;
+        }
+
+        .mask {
+            position: absolute;
+            pointer-events: none;
+            display: none;
+        }
+
+        /* 逐像素块的风格 */
+        .pixel {
+            width: 8px; /* 像素块大小 */
+            height: 8px; /* 像素块大小 */
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="image-container" id="image1-container">
+            <img src="../images/4.png" id="image1" alt="Image 1">
+            <div class="highlight" id="highlight1"></div>
+            <div class="mask" id="mask1"></div>
+        </div>
+        <div class="image-container" id="image2-container">
+            <img src="../images/11.png" id="image2" alt="Image 2">
+            <div class="highlight" id="highlight2"></div>
+            <div class="mask" id="mask2"></div>
+        </div>
+    </div>
+
+    <script>
+        const image1 = document.getElementById('image1');
+        const image2 = document.getElementById('image2');
+        const highlight1 = document.getElementById('highlight1');
+        const highlight2 = document.getElementById('highlight2');
+        const mask1 = document.getElementById('mask1');
+        const mask2 = document.getElementById('mask2');
+
+        function randomColor() {
+            return `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.1)`;
+        }
+
+        function generateDiagonalMatrices(size) {
+            const matrices = [];
+            for (let k = 0; k < size; k++) {
+                const matrix = [];
+                for (let i = 0; i < 32; i++) {
+                    const row = [];
+                    for (let j = 0; j < 32; j++) {
+                        if (i === j) {
+                            row.push(Math.min(1,Math.random() * 10)); 
+                        } else {
+                            row.push(Math.max(0, Math.random() / 10)); 
+                        }
+                    }
+                    matrix.push(row);
+                }
+                matrices.push(matrix);
+            }
+            return matrices;
+        }
+
+        // function generateSimilarityMatrix(size) {
+        //     const matrix = [];
+        //     for (let i = 0; i < size; i++) {
+        //         const row = [];
+        //         for (let j = 0; j < size; j++) {
+        //             row.push(Math.random()); // 随机相似度值
+        //         }
+        //         matrix.push(row);
+        //     }
+        //     return matrix;
+        // }
+
+        const similarityMatrix = generateDiagonalMatrices(32 * 32);
+        // console.log(similarityMatrix[0]);
+        // console.log(similarityMatrix[0][0][0]);
+        // console.log(similarityMatrix);
+
+        function showHighlight(event, highlight, mask, image, blockSize) {
+            const rect = image.getBoundingClientRect();
+            let x = event.clientX - rect.left;
+            let y = event.clientY - rect.top;
+
+            // 计算鼠标所在的像素块索引
+            const blockX = Math.floor(x / blockSize);
+            const blockY = Math.floor(y / blockSize);
+            const currentIndex = Math.floor(blockY * (rect.width / blockSize) + blockX);
+            // console.log('Current Index:', currentIndex);
+
+            // 清除之前的像素块
+            while (mask.firstChild) {
+                mask.removeChild(mask.firstChild);
+            }
+            const currentMatrix = similarityMatrix[currentIndex];
+            // 创建新的像素块，并根据相似度值设置高亮状态
+            for (let i = 0; i < 32; i++) {
+                for (let j = 0; j < 32; j++) {
+                    const pixel = document.createElement('div');
+                    pixel.classList.add('pixel');
+                    pixel.style.left = `${i * blockSize}px`;
+                    pixel.style.top = `${j * blockSize}px`;
+
+                    const similarity = currentMatrix[j][i];
+
+                    // 根据相似度分为五个类别
+                    if (similarity >= 0.8) {
+                        pixel.style.backgroundColor = 'rgba(255, 255, 0, 1)'; // 高亮黄色
+                    } else if (similarity >= 0.6) {
+                        pixel.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'; // 中高亮黄色
+                    } else if (similarity >= 0.4) {
+                        pixel.style.backgroundColor = 'rgba(255, 255, 255, 0.5)'; // 中亮黄色
+                    } else if (similarity >= 0.2) {
+                        pixel.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'; // 低亮黄色
+                    } else {
+                        pixel.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'; // 透明灰色
+                    }
+
+                    mask.appendChild(pixel);
+                }
+            }
+
+            highlight.style.display = 'block';
+
+            mask.style.width = `${rect.width}px`;
+            mask.style.height = `${rect.height}px`;
+            mask.style.top = '0';
+            mask.style.left = '0';
+            mask.style.display = 'block';
+        }
+
+        function hideHighlight(highlight, mask) {
+            highlight.style.display = 'none';
+            mask.style.display = 'none';
+        }
+
+        image1.addEventListener('mousemove', (event) => {
+            showHighlight(event, highlight1, mask1, image1, 8); // 8px 像素块大小
+            const event2 = new MouseEvent('mousemove', {
+                clientX: event.clientX + image2.getBoundingClientRect().left - image1.getBoundingClientRect().left,
+                clientY: event.clientY + image2.getBoundingClientRect().top - image1.getBoundingClientRect().top
+            });
+            showHighlight(event2, highlight2, mask2, image2, 8); // 8px 像素块大小
+        });
+
+        image1.addEventListener('mouseout', () => {
+            hideHighlight(highlight1, mask1);
+            hideHighlight(highlight2, mask2);
+        });
+
+        image2.addEventListener('mousemove', (event) => {
+            showHighlight(event, highlight2, mask2, image2, 8); // 8px 像素块大小
+            const event1 = new MouseEvent('mousemove', {
+                clientX: event.clientX + image1.getBoundingClientRect().left - image2.getBoundingClientRect().left,
+                clientY: event.clientY + image1.getBoundingClientRect().top - image2.getBoundingClientRect().top
+            });
+            showHighlight(event1, highlight1, mask1, image1, 8); // 8px 像素块大小
+        });
+
+        image2.addEventListener('mouseout', () => {
+            hideHighlight(highlight1, mask1);
+            hideHighlight(highlight2, mask2);
+        });
+    </script>
+</body>
+</html>

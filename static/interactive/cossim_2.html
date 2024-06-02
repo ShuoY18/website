@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Interaction</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-container {
+            position: relative;
+            margin: 10px;
+        }
+
+        .image-container img {
+            width: 300px;
+            height: auto;
+        }
+
+        .highlight {
+            position: absolute;
+            border: 2px solid red;
+            pointer-events: none;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="image-container" id="image1-container">
+            <img src="../images/cossim1-1.jpg" id="image1" alt="Image 1">
+            <div class="highlight" id="highlight1"></div>
+        </div>
+        <div class="image-container" id="image2-container">
+            <img src="../images/cossim1-2.jpg" id="image2" alt="Image 2">
+            <div class="highlight" id="highlight2"></div>
+        </div>
+    </div>
+
+    <script>
+        const image1 = document.getElementById('image1');
+        const image2 = document.getElementById('image2');
+        const highlight1 = document.getElementById('highlight1');
+        const highlight2 = document.getElementById('highlight2');
+
+        function showHighlight(event, highlight, image, blockSize) {
+            const rect = image.getBoundingClientRect();
+            let x = event.clientX - rect.left;
+            let y = event.clientY - rect.top;
+
+            // 确保坐标在图片内部
+            x = Math.min(Math.max(x - blockSize, 0), rect.width - blockSize);
+            y = Math.min(Math.max(y - blockSize, 0), rect.height - blockSize);
+
+            const pixelX = Math.floor(x / blockSize) * blockSize;
+            const pixelY = Math.floor(y / blockSize) * blockSize;
+
+            highlight.style.left = `${pixelX}px`;
+            highlight.style.top = `${pixelY}px`;
+            highlight.style.width = `${blockSize}px`;
+            highlight.style.height = `${blockSize}px`;
+            highlight.style.display = 'block';
+        }
+
+        function hideHighlight(highlight) {
+            highlight.style.display = 'none';
+        }
+
+        image1.addEventListener('mousemove', (event) => {
+            showHighlight(event, highlight1, image1, 4); // 5px 像素块大小
+            const event2 = new MouseEvent('mousemove', {
+                clientX: event.clientX + image2.getBoundingClientRect().left - image1.getBoundingClientRect().left,
+                clientY: event.clientY + image2.getBoundingClientRect().top - image1.getBoundingClientRect().top
+            });
+            showHighlight(event2, highlight2, image2, 4); // 5px 像素块大小
+        });
+
+        image1.addEventListener('mouseout', () => {
+            hideHighlight(highlight1);
+            hideHighlight(highlight2);
+        });
+
+        image2.addEventListener('mousemove', (event) => {
+            showHighlight(event, highlight2, image2, 4); // 5px 像素块大小
+            const event1 = new MouseEvent('mousemove', {
+                clientX: event.clientX + image1.getBoundingClientRect().left - image2.getBoundingClientRect().left,
+                clientY: event.clientY + image1.getBoundingClientRect().top - image2.getBoundingClientRect().top
+            });
+            showHighlight(event1, highlight1, image1, 4); // 5px 像素块大小
+        });
+
+        image2.addEventListener('mouseout', () => {
+            hideHighlight(highlight1);
+            hideHighlight(highlight2);
+        });
+    </script>
+</body>
+</html>
