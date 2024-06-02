@@ -27,5 +27,5 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public  # 你生成的静态网站文件所在的目录
-          destination_repo: yourusername/yourusername.github.io  # 私有仓库的名称
+          publish_dir: ./  
+          destination_repo: shuoy18/shuoy18.github.io/  # 私有仓库的名称
