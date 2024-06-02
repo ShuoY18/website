@@ -27,5 +27,5 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          publish_dir: ./
           destination_repo: shuoy18/ShuoY18.github.io/  # 私有仓库的名称
